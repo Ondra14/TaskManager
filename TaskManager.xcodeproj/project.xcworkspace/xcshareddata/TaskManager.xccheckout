@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>96DA6919-D256-480C-AC75-623EEFFD37AA</string>
+	<key>IDESourceControlProjectName</key>
+	<string>project</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>22336AA71CB85B898EAC8D3A94D91EA4851EFEAB</key>
+		<string>https://github.com/Ondra14/TaskManager.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>TaskManager.xcodeproj/project.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>22336AA71CB85B898EAC8D3A94D91EA4851EFEAB</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/Ondra14/TaskManager.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>111</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>22336AA71CB85B898EAC8D3A94D91EA4851EFEAB</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>22336AA71CB85B898EAC8D3A94D91EA4851EFEAB</string>
+			<key>IDESourceControlWCCName</key>
+			<string>TaskManager</string>
+		</dict>
+	</array>
+</dict>
+</plist>
