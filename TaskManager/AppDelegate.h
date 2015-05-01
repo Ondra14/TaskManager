@@ -8,7 +8,9 @@
 
 #import <UIKit/UIKit.h>
 #import <CoreData/CoreData.h>
+
 #import "Task.h"
+#import "SettingsTableViewController.h"
 
 
 
@@ -26,7 +28,7 @@
 @property (readonly, strong, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
 
 @property (nonatomic) BOOL enabledNotification;
-
+@property (nonatomic) SortByRowIndex sortBy;
 
 - (void)saveContext;
 - (NSURL *)applicationDocumentsDirectory;

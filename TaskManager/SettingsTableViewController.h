@@ -8,8 +8,16 @@
 
 #import <UIKit/UIKit.h>
 
+typedef NS_ENUM(NSInteger, SortByRowIndex) {
+    SortByRowIndexDate = 0,
+    SortByRowIndexName
+};
+
 @interface SettingsTableViewController : UITableViewController
 
 @property (weak, nonatomic) IBOutlet UISwitch *enabledNotificationSwitch;
+
+@property SortByRowIndex sortBy;
+@property BOOL enabledNotification;
 
 @end

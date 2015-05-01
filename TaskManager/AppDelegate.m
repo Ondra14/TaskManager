@@ -8,18 +8,15 @@
 
 #import "AppDelegate.h"
 
-
-
 @interface AppDelegate () <UISplitViewControllerDelegate>
 
 @end
 
 @implementation AppDelegate
 
-
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
 
-    [self updateEnabledNotification];
+    [self updatePropertiesByUserDefaults];
     [self scheduleNotification];
    
     return YES;
@@ -223,8 +220,11 @@
 
 
 #pragma mark - Store
+
 #define EnabledNotificationKey @"notifications"
 #define EnabledNotificationDefaultValue YES
+#define SortByKey @"sortBy"
+#define SortByDefaultValue SortByRowIndexDate
 
 -(void) setEnabledNotification: (BOOL) enabled {
     _enabledNotification = enabled;
@@ -237,15 +237,30 @@
     
 }
 
--(void) updateEnabledNotification {
+-(void) setSortBy: (SortByRowIndex) sortBy {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:[NSNumber numberWithInt: (int) sortBy] forKey: SortByKey];
+    
+    [defaults synchronize];
+    
+    _sortBy = sortBy;
+    
+}
+
+-(void) updatePropertiesByUserDefaults {
     NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
     NSNumber *number = [defaults objectForKey: EnabledNotificationKey];
     if (number == nil) {
         number = [NSNumber numberWithBool: EnabledNotificationDefaultValue];
-        
     }
     self.enabledNotification = number.boolValue;
-}
+    
+    number = [defaults objectForKey: SortByKey];
+    if (number == nil) {
+        number = [NSNumber numberWithBool: SortByDefaultValue];
+    }
+    self.sortBy = number.intValue;
 
+}
 
 @end

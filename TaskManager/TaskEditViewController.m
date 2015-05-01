@@ -76,7 +76,7 @@
 
 - (void) updateUI {
     performUpdateUI = NO;
-    
+
     if (task != nil) {
         [_taskNameTextField setText: task.name];
 
@@ -124,6 +124,7 @@
         TaskCategoryListTableViewController *taskCategoryListTableViewController = destinationViewController;
         [taskCategoryListTableViewController setSelectedTaskCategory: task.category];
         [taskCategoryListTableViewController setDelegate: self];
+        [taskCategoryListTableViewController setSelectMode: YES];
     }
 }
 

@@ -53,6 +53,9 @@
 
 -(void) viewWillAppear:(BOOL)animated {
     [super viewWillAppear: animated];
+    
+    _fetchedResultsController = nil;
+    
     [[self tableView] reloadData];
 }
 
@@ -120,9 +123,6 @@
         cell.accessoryType = UITableViewCellAccessoryNone;
     }
     
-    
-    
-    
     return cell;
 }
 
@@ -134,6 +134,8 @@
     id destinationViewController = [segue destinationViewController] ;
     
     if ([[segue identifier] isEqualToString:SEGUE_ADD_TASK]) {
+        TaskEditViewController *taskEditViewController = destinationViewController;
+        [taskEditViewController setPerformUpdateUI: YES];
     }
     
     if ([[segue identifier] isEqualToString:SEGUE_EDIT_TASK]) {
@@ -163,6 +165,7 @@
             NSLog(@"Unresolved error %@, %@", error, [error userInfo]);
             abort();
         }
+        [self scheduleNotification];
     }
 
     else {
@@ -222,7 +225,27 @@
     // Set the batch size to a suitable number.
     [fetchRequest setFetchBatchSize:20];
     
-    NSSortDescriptor *sortDescriptor1 = [[NSSortDescriptor alloc] initWithKey:@"name" ascending:YES];
+    AppDelegate *myApplication;
+    myApplication = (AppDelegate *)[[UIApplication sharedApplication] delegate];
+    
+    
+    NSString *sortByKey;
+    
+    switch ([myApplication sortBy]) {
+        case SortByRowIndexDate:
+            sortByKey = @"date";
+            break;
+
+        case SortByRowIndexName:
+            sortByKey = @"name";
+            break;
+            
+        default:
+            sortByKey = @"date";
+            break;
+    }
+    
+    NSSortDescriptor *sortDescriptor1 = [[NSSortDescriptor alloc] initWithKey:sortByKey ascending:YES];
     
     
     NSArray *sortDescriptors = @[sortDescriptor1];
@@ -230,7 +253,7 @@
     [fetchRequest setSortDescriptors:sortDescriptors];
     
 
-    NSFetchedResultsController *aFetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:nil cacheName:@"Master"];
+    NSFetchedResultsController *aFetchedResultsController = [[NSFetchedResultsController alloc] initWithFetchRequest:fetchRequest managedObjectContext:self.managedObjectContext sectionNameKeyPath:nil cacheName:nil];
     
     aFetchedResultsController.delegate = self;
     self.fetchedResultsController = aFetchedResultsController;
@@ -255,9 +278,12 @@
 - (void)setTaskAsDone:(Task *)task {
     
     task.done = [NSNumber numberWithBool:true];
+    [self scheduleNotification];
+}
+
+- (void)scheduleNotification {
     AppDelegate *myApplication;
     myApplication = (AppDelegate *)[[UIApplication sharedApplication] delegate];
-    [myApplication saveContext];
     [myApplication scheduleNotification];
 }
 
