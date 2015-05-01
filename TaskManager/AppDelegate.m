@@ -7,8 +7,8 @@
 //
 
 #import "AppDelegate.h"
-#import "DetailViewController.h"
-#import "MasterViewController.h"
+
+
 
 @interface AppDelegate () <UISplitViewControllerDelegate>
 
@@ -18,15 +18,10 @@
 
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-    // Override point for customization after application launch.
-    UISplitViewController *splitViewController = (UISplitViewController *)self.window.rootViewController;
-    UINavigationController *navigationController = [splitViewController.viewControllers lastObject];
-    navigationController.topViewController.navigationItem.leftBarButtonItem = splitViewController.displayModeButtonItem;
-    splitViewController.delegate = self;
 
-    UINavigationController *masterNavigationController = splitViewController.viewControllers[0];
-    MasterViewController *controller = (MasterViewController *)masterNavigationController.topViewController;
-    controller.managedObjectContext = self.managedObjectContext;
+    [self updateEnabledNotification];
+    [self scheduleNotification];
+   
     return YES;
 }
 
@@ -38,32 +33,26 @@
 - (void)applicationDidEnterBackground:(UIApplication *)application {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+    [self scheduleNotification];
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application {
     // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
+    application.applicationIconBadgeNumber = 0;
 }
-
 - (void)applicationDidBecomeActive:(UIApplication *)application {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+    application.applicationIconBadgeNumber = 0;
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     // Saves changes in the application's managed object context before the application terminates.
     [self saveContext];
+    [self scheduleNotification];
 }
 
-#pragma mark - Split view
 
-- (BOOL)splitViewController:(UISplitViewController *)splitViewController collapseSecondaryViewController:(UIViewController *)secondaryViewController ontoPrimaryViewController:(UIViewController *)primaryViewController {
-    if ([secondaryViewController isKindOfClass:[UINavigationController class]] && [[(UINavigationController *)secondaryViewController topViewController] isKindOfClass:[DetailViewController class]] && ([(DetailViewController *)[(UINavigationController *)secondaryViewController topViewController] detailItem] == nil)) {
-        // Return YES to indicate that we have handled the collapse by doing nothing; the secondary controller will be discarded.
-        return YES;
-    } else {
-        return NO;
-    }
-}
 
 #pragma mark - Core Data stack
 
@@ -93,12 +82,16 @@
     }
     
     // Create the coordinator and store
+
+    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:
+                             [NSNumber numberWithBool:YES], NSMigratePersistentStoresAutomaticallyOption,
+                             [NSNumber numberWithBool:YES], NSInferMappingModelAutomaticallyOption, nil];
     
     _persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
     NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:@"TaskManager.sqlite"];
     NSError *error = nil;
     NSString *failureReason = @"There was an error creating or loading the application's saved data.";
-    if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error]) {
+    if (![_persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:options error:&error]) {
         // Report any error we got.
         NSMutableDictionary *dict = [NSMutableDictionary dictionary];
         dict[NSLocalizedDescriptionKey] = @"Failed to initialize the application's saved data";
@@ -144,5 +137,115 @@
         }
     }
 }
+
+
+#pragma mark - Notification
+
+- (void)application:(UIApplication *)application didReceiveLocalNotification:(UILocalNotification *)notification
+{
+    UIAlertController *alertController = [UIAlertController
+                                          alertControllerWithTitle:notification.alertTitle
+                                          message:notification.alertBody
+                                          preferredStyle:UIAlertControllerStyleAlert];
+    
+    
+    UIAlertAction *okAction = [UIAlertAction
+                                   actionWithTitle:NSLocalizedString(@"Ok", @"Okay action")
+                                   style:UIAlertActionStyleCancel
+                                   handler:^(UIAlertAction *action)
+                                   {
+                                   }];
+    
+    [alertController addAction: okAction];
+
+    UIViewController *viewController = self.window.rootViewController;
+    [viewController presentViewController:alertController animated: YES completion:nil];
+}
+
+#pragma mark - Schedule Notification
+
+-(void) scheduleNotification {
+    [[UIApplication sharedApplication] cancelAllLocalNotifications];
+    if (!self.enabledNotification) {
+        return;
+    }
+       
+       
+    UIUserNotificationType types = UIUserNotificationTypeBadge | UIUserNotificationTypeSound | UIUserNotificationTypeAlert;
+    UIUserNotificationSettings *mySettings = [UIUserNotificationSettings settingsForTypes:types categories:nil];
+    [[UIApplication sharedApplication] registerUserNotificationSettings:mySettings];
+    
+    NSEntityDescription *entityDescription = [NSEntityDescription entityForName:@"Task" inManagedObjectContext:self.managedObjectContext];
+    
+    NSFetchRequest *request = [[NSFetchRequest alloc] init];
+    [request setEntity:entityDescription];
+    
+    NSError *error;
+    NSArray *tasks = [_managedObjectContext executeFetchRequest:request error:&error];
+    
+    int count = 0;
+    for(Task *task in tasks) {
+        if ([self scheduleNotificationForTask: task]) count ++;
+    }
+    
+//    NSLog(@"scheduled %i", count);
+    
+    
+}
+
+-(BOOL) scheduleNotificationForTask: (Task*) task {
+
+    
+    if (task == nil) return false;
+    
+    if (task.done != nil && task.done.boolValue) return false;
+    if (task.notify == nil || !task.notify.boolValue) return false;
+    if (task.date == nil) return false;
+    
+    if ([task.date compare:[NSDate date]] == NSOrderedAscending) {
+        return false;
+    }
+
+    
+    UILocalNotification *localNotification = [[UILocalNotification alloc] init];
+    localNotification.fireDate = task.date;
+    localNotification.timeZone = [NSTimeZone defaultTimeZone];
+    
+    localNotification.alertBody = task.name;
+    localNotification.alertAction = NSLocalizedString(@"View Tasks", nil);
+    localNotification.soundName = UILocalNotificationDefaultSoundName;
+    
+    [[UIApplication sharedApplication] scheduleLocalNotification:localNotification];
+    
+//    NSLog(@"%@", localNotification);
+    return true;
+}
+
+
+#pragma mark - Store
+#define EnabledNotificationKey @"notifications"
+#define EnabledNotificationDefaultValue YES
+
+-(void) setEnabledNotification: (BOOL) enabled {
+    _enabledNotification = enabled;
+    
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:[NSNumber numberWithBool:enabled] forKey: EnabledNotificationKey];
+    [defaults synchronize];
+    
+    [self scheduleNotification];
+    
+}
+
+-(void) updateEnabledNotification {
+    NSUserDefaults *defaults = [NSUserDefaults standardUserDefaults];
+    NSNumber *number = [defaults objectForKey: EnabledNotificationKey];
+    if (number == nil) {
+        number = [NSNumber numberWithBool: EnabledNotificationDefaultValue];
+        
+    }
+    self.enabledNotification = number.boolValue;
+}
+
 
 @end

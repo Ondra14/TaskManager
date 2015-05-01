@@ -8,6 +8,14 @@
 
 #import <UIKit/UIKit.h>
 #import <CoreData/CoreData.h>
+#import "Task.h"
+
+
+
+#define NSLS_COMMON_EDIT NSLocalizedString(@"Edit", nil)
+#define NSLS_COMMON_DONE NSLocalizedString(@"Done", nil)
+#define NSLS_COMMON_ADD NSLocalizedString(@"Add", nil)
+#define NSLS_COMMON_SAVE NSLocalizedString(@"Save", nil)
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
@@ -17,9 +25,16 @@
 @property (readonly, strong, nonatomic) NSManagedObjectModel *managedObjectModel;
 @property (readonly, strong, nonatomic) NSPersistentStoreCoordinator *persistentStoreCoordinator;
 
+@property (nonatomic) BOOL enabledNotification;
+
+
 - (void)saveContext;
 - (NSURL *)applicationDocumentsDirectory;
 
+-(void) scheduleNotification;
+
+-(void) setEnabledNotification: (BOOL) enabled;
+-(BOOL) enabledNotification;
 
 @end
 
